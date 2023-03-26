@@ -8,7 +8,7 @@ namespace Github_Release_Manger
 {
     internal class Program
     {
-        struct Token
+        public struct Token
         {
             public string name;
             public string owner;
@@ -37,25 +37,10 @@ namespace Github_Release_Manger
         {
             if (args.Length != 0) return;
             Console.WriteLine("Loading tokens...\n");
-            XmlDocument doc = new XmlDocument();
-            doc.Load("Data/Tokens.grm");
 
-            List<Token> tokens = new List<Token>();
-            foreach(XmlNode node in  doc.DocumentElement.ChildNodes)
-            {
-                Token token = new Token(node);
-                tokens.Add(token);
-                Console.WriteLine("Token found:" +
-                    "\n\tToken:          {0}" +
-                    "\n\tOwner:          {1}" +
-                    "\n\tRepo:           {2}",
-                    token.token,token.owner,token.repo);
-                Console.Write("\n\tExpration Date: ");
-                (string,ConsoleColor) token_exp_date = token.GetExpirationDate();
-                Console.ForegroundColor = token_exp_date.Item2;
-                Console.WriteLine("{0}",token_exp_date.Item1);
-                Console.ForegroundColor = ConsoleColor.White;
-            }
+            List<Token> tokens = CommandManager.LoadTokens();
+            if(tokens.Count == 0) Console.WriteLine("No tokens found.");
+            else tokens.ForEach(token => CommandManager.PrintToken(token, "found"));
 
             CommandManager.GetCommand();
         }
