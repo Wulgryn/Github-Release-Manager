@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33502.453
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Github Release Manger", "Github Release Manger.csproj", "{0748C267-F368-417D-BA23-19192FFC9676}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Github Release Manger", "Github Release Manger.csproj", "{0748C267-F368-417D-BA23-19192FFC9676}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GRM Build Tracker", "..\GRM Build Tracker\GRM Build Tracker.csproj", "{079EE6B2-FC3E-4066-9687-A0BD76EA4058}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{0748C267-F368-417D-BA23-19192FFC9676}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0748C267-F368-417D-BA23-19192FFC9676}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0748C267-F368-417D-BA23-19192FFC9676}.Release|Any CPU.Build.0 = Release|Any CPU
+		{079EE6B2-FC3E-4066-9687-A0BD76EA4058}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{079EE6B2-FC3E-4066-9687-A0BD76EA4058}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{079EE6B2-FC3E-4066-9687-A0BD76EA4058}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{079EE6B2-FC3E-4066-9687-A0BD76EA4058}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

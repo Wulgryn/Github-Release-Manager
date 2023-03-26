@@ -14,9 +14,17 @@
 
   <ItemGroup>
     <Content Include="Data\Tokens.grm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator></Generator>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Packages\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Octokit" Version="5.0.2" />
   </ItemGroup>
 
 </Project>
