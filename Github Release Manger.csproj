@@ -14,9 +14,13 @@
 
   <ItemGroup>
     <Content Include="Data\Tokens.grm">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Generator></Generator>
     </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\Packages\" />
   </ItemGroup>
 
 </Project>
