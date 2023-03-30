@@ -23,4 +23,8 @@
     <Folder Include="Data\Packages\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Octokit" Version="5.0.2" />
+  </ItemGroup>
+
 </Project>
