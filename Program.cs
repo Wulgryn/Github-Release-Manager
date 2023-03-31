@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using GRM_Build_Tracker;
+using System.Drawing;
 using System.Net;
 using System.Xml;
 
@@ -35,6 +36,7 @@ namespace Github_Release_Manger
         }
         static void Main(string[] args)
         {
+            BuildTracker.AddBuildNumber();
             if (args.Length != 0) return;
             Console.WriteLine("Loading tokens...\n");
 
