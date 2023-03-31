@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Github Release Manger": {
+      "commandName": "Project",
+      "commandLineArgs": "build"
+    }
+  }
+}

@@ -17,7 +17,7 @@ namespace Github_Release_Manger
 {
     internal class CommandManager
     {
-        private static string command;
+        public static string command;
         public static void GetCommand()
         {
             bool run = true;
@@ -30,7 +30,7 @@ namespace Github_Release_Manger
             }
         }
 
-        private static void InitCommand(string command)
+        public static void InitCommand(string command)
         {
             command = command.Trim();
             if (command == "") return;
@@ -57,7 +57,14 @@ namespace Github_Release_Manger
                 case Commands.get_token: get_token(); break;
                 case Commands.delete_token: delete_token(); break;
                 case Commands.save_token: save_token(); break;
-                case Commands.clear: Console.Clear(); break;
+                case Commands.clear:
+                    {
+                        Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("ONLY OPTIMALISED FOR VS COMMUNITY!");
+                        Console.ForegroundColor = ConsoleColor.White;
+                        break;
+                    }
                 case Commands.help:
                     Console.WriteLine("\n-------Commands-------\n" +
                         "\nexit \t Exit program." +
@@ -122,7 +129,7 @@ namespace Github_Release_Manger
             foreach (string str in cmd.Split('"'))
             {
                 //if (str == "'")
-                   // if (path)
+                // if (path)
             }
 
 
@@ -303,7 +310,7 @@ namespace Github_Release_Manger
             public void AddReleaseVersion()
             {
                 release_version = (int.Parse(release_version) + 1) + "";
-                Config.EditItem(config,"release_version",release_version);
+                Config.EditItem(config, "release_version", release_version);
             }
             public void AddFullReleaseVersion()
             {
@@ -456,7 +463,7 @@ namespace Github_Release_Manger
         #region Release Managemnt
 
         #region Package
-        
+
         static void create_pack()
         {
             Dictionary<string, string> args = InitArgs(true);
@@ -464,7 +471,7 @@ namespace Github_Release_Manger
             string path = args.GetPairValue("path");
             string name = args.GetPairValue("name");
             string[] args_ = InitArgs();
-            bool silent = args_.GetLogicItem(4,"q") || args_.GetLogicItem(1, "silent");
+            bool silent = args_.GetLogicItem(4, "q") || args_.GetLogicItem(1, "silent");
 
             if (path == null)
             {
@@ -494,13 +501,13 @@ namespace Github_Release_Manger
             {
                 FileInfo fi = new FileInfo(file);
                 if (fi.Name == "build.version" || fi.Name == "desktop.ini") continue;
-                File.Copy(file, pack_path + "/" + fi.Name.Replace(" ","-"), true);
+                File.Copy(file, pack_path + "/" + fi.Name.Replace(" ", "-"), true);
                 Console.WriteLine("Packed: " + fi.Name);
             }
-            foreach(string directory in pack.GetSourceDirectories())
+            foreach (string directory in pack.GetSourceDirectories())
             {
                 DirectoryInfo di = new DirectoryInfo(directory);
-                ZipFile.CreateFromDirectory(directory, pack_path + "/" + di.Name.Replace(" ","-") + ".zip");
+                ZipFile.CreateFromDirectory(directory, pack_path + "/" + di.Name.Replace(" ", "-") + ".zip");
                 Console.WriteLine("Packed: " + di.Name);
             }
         }
@@ -520,10 +527,10 @@ namespace Github_Release_Manger
 
             Pack pack = new Pack(path + "/pack.cfg");
 
-            foreach(string file in pack.GetSourceFiles())
+            foreach (string file in pack.GetSourceFiles())
             {
                 FileInfo sourceFile = new FileInfo(file);
-                FileInfo packFile = new FileInfo(path + "/" + sourceFile.Name.Replace(" ","-"));
+                FileInfo packFile = new FileInfo(path + "/" + sourceFile.Name.Replace(" ", "-"));
                 if (sourceFile.Name == "build.version" || sourceFile.Name == "desktop.ini") continue;
                 if (!packFile.Exists || (sourceFile.LastWriteTime != packFile.LastWriteTime))
                 {
@@ -532,10 +539,10 @@ namespace Github_Release_Manger
                 }
             }
 
-            foreach(string file in pack.GetPackFiles())
+            foreach (string file in pack.GetPackFiles())
             {
                 FileInfo packFile = new FileInfo(file);
-                FileInfo sourceFile = new FileInfo(pack.path + "/" + packFile.Name.Replace("-"," "));
+                FileInfo sourceFile = new FileInfo(pack.path + "/" + packFile.Name.Replace("-", " "));
 
                 if (packFile.Exists && !sourceFile.Exists && (packFile.Extension != ".zip" && packFile.Name != "pack.cfg"))
                 {
@@ -545,22 +552,22 @@ namespace Github_Release_Manger
             }
 
 
-            foreach(string directory in pack.GetSourceDirectories())
+            foreach (string directory in pack.GetSourceDirectories())
             {
                 DirectoryInfo sourceDir = new DirectoryInfo(directory);
-                FileInfo packDir = new FileInfo(path + "/" + sourceDir.Name.Replace(" ","-") + ".zip");
+                FileInfo packDir = new FileInfo(path + "/" + sourceDir.Name.Replace(" ", "-") + ".zip");
 
-                if(packDir.Exists) packDir.Delete();
+                if (packDir.Exists) packDir.Delete();
                 ZipFile.CreateFromDirectory(sourceDir.FullName, packDir.FullName);
                 Console.WriteLine("ZIP Packed: " + sourceDir.Name);
             }
 
-            foreach(string directory in pack.GetPackFiles())
+            foreach (string directory in pack.GetPackFiles())
             {
                 FileInfo packDir = new FileInfo(directory);
                 DirectoryInfo sourceDir = new DirectoryInfo(pack.path + "/" + Path.GetFileNameWithoutExtension(packDir.Name.Replace("-", " ")));
 
-                if(packDir.Extension == ".zip" && packDir.Exists && !sourceDir.Exists)
+                if (packDir.Extension == ".zip" && packDir.Exists && !sourceDir.Exists)
                 {
                     File.Delete(packDir.FullName);
                     Console.WriteLine("Deleted ZIP pack: " + sourceDir.Name);
@@ -574,16 +581,16 @@ namespace Github_Release_Manger
             string[] args = InitArgs();
             if (!args.ArgsLengthTest(1, Commands.remove_pack)) return;
             string name = args[0];
-            bool silent = args.GetLogicItem(1, "q") || args.GetLogicItem(1,"silent");
+            bool silent = args.GetLogicItem(1, "q") || args.GetLogicItem(1, "silent");
 
             string path = "Data/Packages/" + name;
             DirectoryInfo di = new DirectoryInfo(path);
-            if(!di.Exists)
+            if (!di.Exists)
             {
                 Console.WriteLine($"Package '{name}' does not exist.");
                 return;
             }
-            if(!silent && YesNo(true,"Are you sure?"))
+            if (!silent && YesNo(true, "Are you sure?"))
             {
                 di.DeleteReadOnly();
             }
@@ -597,33 +604,33 @@ namespace Github_Release_Manger
             bool verbose = args.GetLogicItem(0, "verbose");
 
             string[] packs = Directory.GetDirectories("Data/Packages");
-            foreach(string pack in packs)
+            foreach (string pack in packs)
             {
                 Console.WriteLine("Package found:");
                 Pack p = new Pack(pack + "/pack.cfg");
-                Console.WriteLine("\tName: \t {0}",p.name);
+                Console.WriteLine("\tName: \t {0}", p.name);
                 if (v)
                 {
                     Console.WriteLine("\n\tBuild version: \t {0}" +
                         "\n\tRelease version: \t {1}" +
                         "\n\tFull release version: \t {2}" +
                         "\n\n\tPath: \t {3}",
-                        p.build_version,p.release_version,p.full_release_version,p.path);
+                        p.build_version, p.release_version, p.full_release_version, p.path);
                 }
-                if(verbose)
+                if (verbose)
                 {
                     string[] packFiles = p.GetPackFiles();
 
-                    foreach(string file in packFiles)
+                    foreach (string file in packFiles)
                     {
                         FileInfo fi = new FileInfo(file);
                         if (fi.Name == "pack.cfg" || fi.Name == "desktop.ini") continue;
                         if (fi.Extension == ".zip") Console.WriteLine("Folder:" +
                             "\n\tPack name: \t {0}" +
-                            "\n\tSource name: \t {1}",fi.Name, Path.GetFileNameWithoutExtension(fi.Name.Replace("-"," ")));
+                            "\n\tSource name: \t {1}", fi.Name, Path.GetFileNameWithoutExtension(fi.Name.Replace("-", " ")));
                         else Console.WriteLine("File:" +
                             "\n\tPack name: \t {0}" +
-                            "\n\tSource name: \t {1}",fi.Name,fi.Name.Replace("-"," "));
+                            "\n\tSource name: \t {1}", fi.Name, fi.Name.Replace("-", " "));
                     }
                 }
             }
@@ -668,6 +675,37 @@ namespace Github_Release_Manger
             }
         }
 
+        static void pack_version()
+        {
+            string[] args = InitArgs();
+            if (!args.ArgsLengthTest(2, Commands.pack_version)) return;
+            string name = args[0];
+            string version = args[1];
+
+            string path = "Data/Packages/" + name;
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine("Package does not exist, use \"create-pack\" to create one.");
+                return;
+            }
+            string cfg = path + "/pack.cfg";
+            try
+            {
+                string full_release = version.Split('.')[0];
+                string release = version.Split('.')[1];
+                string build = version.Split(".")[2];
+                Config.EditItem(cfg, "full_release_version", full_release);
+                Config.EditItem(cfg, "release_version", release);
+                File.WriteAllText(Config.GetItem(cfg, "path") + "/../../build.version", build);
+                Console.WriteLine($"Version set for '{name}'.");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("ERROR -> Message: {0}", ex.Message);
+            }
+
+        }
+
         #endregion package
 
         #region Release
@@ -709,9 +747,9 @@ namespace Github_Release_Manger
                     Console.WriteLine($"Upload completed: '{fi.Name}'");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine("ERROR -> Message: {0}",ex.Message);
+                Console.WriteLine("ERROR -> Message: {0}", ex.Message);
             }
         }
 
@@ -760,7 +798,7 @@ namespace Github_Release_Manger
         public static string GetPairValue(this Dictionary<string, string> args, string key)
         {
             string value;
-            if (args.TryGetValue(key, out  value) || args.TryGetValue("-" + key, out value)) return value;
+            if (args.TryGetValue(key, out value) || args.TryGetValue("-" + key, out value)) return value;
             else return null;
 
         }
@@ -843,6 +881,9 @@ namespace Github_Release_Manger
         [Description("List packages.\n" +
             "\n{attr}'get-packs [-v:verbose]'")]
         get_packs,
+        [Description("Change pack version" +
+            "\n{attr}'pack-version \"pack-name\" \"version-number(full_release_version_number.release_verion_number.build_version_number)\"'")]
+        pack_version,
         #endregion Package Management
 
         #region Release Management

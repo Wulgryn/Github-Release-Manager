@@ -35,12 +35,25 @@ namespace Github_Release_Manger
         }
         static void Main(string[] args)
         {
-            if (args.Length != 0) return;
-            Console.WriteLine("Loading tokens...\n");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("ONLY OPTIMALISED FOR VS COMMUNITY!");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.Title = "Github Release Manager FOR VS COMMUNITY";
+            BuildTracker.AddBuildNumber(ref args);
+            if (args.Length != 0)
+            {
+                CommandManager.command = string.Join(" ", args).Replace("'","\"");
+                Console.WriteLine(CommandManager.command);
+                CommandManager.InitCommand(CommandManager.command);
+                return;
+            }
+            /*Console.WriteLine("Loading tokens...\n");
 
             List<Token> tokens = CommandManager.LoadTokens();
             if(tokens.Count == 0) Console.WriteLine("No tokens found.");
-            else tokens.ForEach(token => CommandManager.PrintToken(token, "found"));
+            else tokens.ForEach(token => CommandManager.PrintToken(token, "found"));*/
+
+            Console.WriteLine("Type 'help' for help.");
 
             CommandManager.GetCommand();
         }
