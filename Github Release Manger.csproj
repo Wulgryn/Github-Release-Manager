@@ -1,13 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Github_Release_Manger</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net6.0</TargetFramework>
+		<RootNamespace>Github_Release_Manger</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
+	<ItemGroup>
+		<None Remove="Data\Tokens.grm" />
+	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 	  <Optimize>True</Optimize>
 	</PropertyGroup>
@@ -20,19 +23,23 @@
 		<None Remove="Data\Tokens.grm" />
 	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Data\Tokens.grm">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Generator></Generator>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Data\Tokens.grm">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<Generator></Generator>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Data\Packages\" />
-  </ItemGroup>
+	<ItemGroup>
+		<Folder Include="Data\Packages\" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Octokit" Version="5.0.2" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Octokit" Version="5.0.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\GRM Build Tracker\GRM Build Tracker.csproj" />
+	</ItemGroup>
 
 </Project>

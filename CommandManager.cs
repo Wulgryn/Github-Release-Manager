@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 using static Github_Release_Manger.Program;
 
 using Token = Github_Release_Manger.Program.Token;
@@ -48,6 +49,7 @@ namespace Github_Release_Manger
 
                 case Commands.download: download(); break;
                 case Commands.release: release(); break;
+                case Commands.pack_version: pack_version(); break;
                 case Commands.get_pack: get_pack(); break;
                 case Commands.get_packs: get_packs(); break;
                 case Commands.remove_pack: remove_pack(); break;
@@ -278,9 +280,9 @@ namespace Github_Release_Manger
                 path = Config.GetItem(configPath, "path");
                 name = Config.GetItem(configPath, "name");
                 release_version = Config.GetItem(configPath, "release_version");
-                if (File.Exists(path + "/build.version"))
+                if (File.Exists(path + "/../../build.version"))
                 {
-                    build_version = File.ReadAllText(path + "/build.version");
+                    build_version = File.ReadAllText(path + "/../../build.version");
                     build_ver = build_version;
                 }
                 else
@@ -706,6 +708,35 @@ namespace Github_Release_Manger
 
         }
 
+        static void pack_version()
+        {
+            string[] args = InitArgs();
+            if (!args.ArgsLengthTest(2, Commands.pack_version)) return;
+            string name = args[0];
+            string version = args[1];
+
+            string path = "Data/Packages/" + name;
+            if (!Directory.Exists(path))
+            {
+                Console.WriteLine("Package does not exist, use \"create-pack\" to create one.");
+                return;
+            }
+            string cfg = path + "/pack.cfg";
+            try
+            {
+                string full_release = version.Split('.')[0];
+                string release = version.Split('.')[1];
+                Config.EditItem(cfg, "full_release_version", full_release);
+                Config.EditItem(cfg, "release_version", release);
+                Console.WriteLine($"Version set for '{name}'.");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("ERROR -> Message: {0}", ex.Message);
+            }
+
+        }
+
         #endregion package
 
         #region Release
@@ -716,29 +747,45 @@ namespace Github_Release_Manger
             if (!args.ArgsLengthTest(2, Commands.release)) return;
             string name = args[0];
             string token_name = args[1];
-            bool silent = args.GetLogicItem(2, "q") || args.GetLogicItem(2, "silent");
+            bool silent = args.GetLogicItem(2, "q") || args.GetLogicItem(2, "silent") || args.GetLogicItem(3, "q") || args.GetLogicItem(3, "silent");
+            bool full_release = args.GetLogicItem(2, "fr") || args.GetLogicItem(2, "fullrelease") || args.GetLogicItem(3, "fr") || args.GetLogicItem(3, "fullrelease");
 
             Pack pack = new Pack("Data/Packages/" + name + "/pack.cfg");
             Token token = GetTokenByName(token_name);
+            if (full_release) pack.AddFullReleaseVersion();
+            string tag = $"{pack.full_release_version}.{pack.release_version}.{pack.GetBuildVersion()}";
+            string release_name = $"{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day} - {tag}";
+            if (!silent)
+            {
+                PrintToken(token.name, "");
+                Console.WriteLine("\nPack:" +
+                    "\n\tname: \t {0}" +
+                    "\n\tpath: \t {1}" +
+                    "\n\nRelease:" +
+                    "\n\tname: \t {2}" +
+                    "\n\n\ttag: \t\t {3}",
+                    pack.name,pack.path,release_name,tag);
+                if (!YesNo(true, "Are you sure?")) return;
+            }
             try
             {
                 GitHubClient client = new GitHubClient(new ProductHeaderValue(name.Replace(" ", "-")));
                 client.Credentials = new Credentials(token.token);
 
-                string tag = $"{pack.full_release_version}.{pack.release_version}.{pack.GetBuildVersion()}";
+                
 
                 NewRelease newRelease = new NewRelease(tag);
-                newRelease.Name = $"{DateTime.Now.Year}.{DateTime.Now.Month}.{DateTime.Now.Day} - {tag}";
+                newRelease.Name = release_name;
                 newRelease.GenerateReleaseNotes = true;
-
+                newRelease.Prerelease = !full_release;
                 Release release = client.Repository.Release.Create(token.owner, token.repo, newRelease).Result;
-                //TODO silent version
+
                 foreach (string file in pack.GetPackFiles())
                 {
                     FileInfo fi = new FileInfo(file);
                     if (fi.Name == "pack.cfg" || fi.Name == "desktop.ini") continue;
                     Console.Write($"Uploading pack asset: '{fi.Name}'");
-                    ReleaseAssetUpload assetUpload = new ReleaseAssetUpload(file, "application/" + Path.GetExtension(fi.Name), File.OpenRead(file), TimeSpan.FromSeconds(30));
+                    ReleaseAssetUpload assetUpload = new ReleaseAssetUpload(fi.Name, "application/" + Path.GetExtension(fi.Name), File.OpenRead(file), TimeSpan.FromSeconds(30));
                     client.Repository.Release.UploadAsset(release, assetUpload);
                     Console.CursorLeft = 0;
                     Thread.Sleep(100);
@@ -746,11 +793,13 @@ namespace Github_Release_Manger
                     Console.CursorLeft = 0;
                     Console.WriteLine($"Upload completed: '{fi.Name}'");
                 }
+                Console.WriteLine("Release completed.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine("ERROR -> Message: {0}", ex.Message);
             }
+            pack.AddReleaseVersion();
         }
 
         #endregion Release
@@ -759,7 +808,65 @@ namespace Github_Release_Manger
 
         static void download()
         {
+            string[] args = InitArgs();
+            if (!args.ArgsLengthTest(2, Commands.download)) return;
+            string token_name = args[0];
+            string path = args[1];
 
+            try
+            {
+                Token token = GetTokenByName(token_name);
+
+
+                GitHubClient client = new GitHubClient(new ProductHeaderValue(token.repo));
+                client.Credentials = new Credentials(token.token);
+                if (client.Repository.Release.GetAll(token.owner, token.repo).Result.Count == 0) return;
+                Release latest = client.Repository.Release.GetAll(token.owner, token.repo).Result[0];
+                Console.WriteLine(latest.Name);
+                Console.WriteLine(latest.Prerelease);
+                foreach (ReleaseAsset asset in latest.Assets)
+                {
+                    DownloadFile(asset.BrowserDownloadUrl, path + "/", asset.Name.Replace("-", " ")).Wait();
+                    FileInfo fi = new FileInfo(asset.Name.Replace("-", " "));
+                    if (fi.Extension == ".zip")
+                    {
+                        string folder = path + "/" + Path.GetFileNameWithoutExtension(fi.Name);
+                        ZipFile.ExtractToDirectory(path + "/" + fi.Name, folder);
+                        if (Directory.Exists(folder)) File.Delete(path + "/" + fi.Name);
+                    }
+                }
+
+                Console.WriteLine("Download completed.");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("ERROR -> Message: {0}", ex.Message);
+            }
+
+        }
+
+        static async Task DownloadFile(string url, string path, string filename)
+        {
+            using var client = new HttpClient();
+            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            var totalBytes = response.Content.Headers.ContentLength;
+            var receivedBytes = 0L;
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var fileStream = new FileStream(path + "/" + filename, System.IO.FileMode.OpenOrCreate);
+            var buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+            {
+                await fileStream.WriteAsync(buffer, 0, bytesRead);
+                receivedBytes += bytesRead;
+                Console.Write($"Downloading '{filename}' -> {receivedBytes} of {totalBytes} bytes ({receivedBytes * 100 / totalBytes}%).");
+                Console.CursorLeft = 0;
+
+                Console.CursorLeft = 0;
+            }
+            Console.Write(new string(' ', Console.BufferWidth));
+            Console.CursorLeft = 0;
+            Console.WriteLine($"Donwloded '{filename}'.");
         }
 
         #endregion Download
@@ -889,10 +996,10 @@ namespace Github_Release_Manger
         #region Release Management
 
         [Description("Create a release.\n" +
-            "\n{attr}'release \"package-name\" \"token-name\" [-q:silent]'")]//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
+            "\n{attr}'release \"package-name\" \"token-name\" [-q:silent] [-fr:fullrelease]'")]//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
         release,
         [Description("Download latest version of repo.\n" +
-            "\n{attr}'download \"\"'")]
+            "\n{attr}'download \"token-name\" \"path\"'")]
         download
         #endregion Release Management
 
