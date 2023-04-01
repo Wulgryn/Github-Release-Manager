@@ -506,12 +506,16 @@ namespace Github_Release_Manger
                 File.Copy(file, pack_path + "/" + fi.Name.Replace(" ", "-"), true);
                 Console.WriteLine("Packed: " + fi.Name);
             }
+            
             foreach (string directory in pack.GetSourceDirectories())
             {
                 DirectoryInfo di = new DirectoryInfo(directory);
                 ZipFile.CreateFromDirectory(directory, pack_path + "/" + di.Name.Replace(" ", "-") + ".zip");
                 Console.WriteLine("Packed: " + di.Name);
             }
+            if (File.Exists(pack_path + "/Prepared-Executeable.zip")) File.Delete(pack_path + "/Prepared-Executeable.zip");
+            ZipFile.CreateFromDirectory(new DirectoryInfo(path).Parent.FullName, pack_path + "/Prepared-Executeable.zip");
+            Console.WriteLine("Created downloadable zip for easy executeable download: 'Prepared-Executeable.zip'");
         }
 
         static void update_pack()
@@ -569,12 +573,16 @@ namespace Github_Release_Manger
                 FileInfo packDir = new FileInfo(directory);
                 DirectoryInfo sourceDir = new DirectoryInfo(pack.path + "/" + Path.GetFileNameWithoutExtension(packDir.Name.Replace("-", " ")));
 
-                if (packDir.Extension == ".zip" && packDir.Exists && !sourceDir.Exists)
+                if (packDir.Extension == ".zip" && packDir.Exists && !sourceDir.Exists && packDir.Name != "Prepared-Executeable.zip")
                 {
                     File.Delete(packDir.FullName);
                     Console.WriteLine("Deleted ZIP pack: " + sourceDir.Name);
                 }
             }
+
+            if (File.Exists(pack.path + "/Prepared-Executeable.zip")) File.Delete(pack.path + "/Prepared-Executeable.zip");
+            ZipFile.CreateFromDirectory(new DirectoryInfo(path).Parent.FullName, pack.path + "/Prepared-Executeable.zip");
+            Console.WriteLine("Created downloadable zip for easy executeable download: 'Prepared-Executeable.zip'");
             Console.WriteLine("Pack '" + pack.name + "' is up to date.");
         }
 
@@ -627,6 +635,11 @@ namespace Github_Release_Manger
                     {
                         FileInfo fi = new FileInfo(file);
                         if (fi.Name == "pack.cfg" || fi.Name == "desktop.ini") continue;
+                        if(fi.Name == "Prepared-Executeable.zip")
+                        {
+                            Console.WriteLine("\nPrepared Executeable: {0}",fi.Name);
+                            continue;
+                        }
                         if (fi.Extension == ".zip") Console.WriteLine("Folder:" +
                             "\n\tPack name: \t {0}" +
                             "\n\tSource name: \t {1}", fi.Name, Path.GetFileNameWithoutExtension(fi.Name.Replace("-", " ")));
@@ -666,6 +679,11 @@ namespace Github_Release_Manger
                 foreach (string file in packFiles)
                 {
                     FileInfo fi = new FileInfo(file);
+                    if (fi.Name == "Prepared-Executeable.zip")
+                    {
+                        Console.WriteLine("\nPrepared Executeable: {0}", fi.Name);
+                        continue;
+                    }
                     if (fi.Name == "pack.cfg" || fi.Name == "desktop.ini") continue;
                     if (fi.Extension == ".zip") Console.WriteLine("Folder:" +
                         "\n\tPack name: \t {0}" +
@@ -797,8 +815,10 @@ namespace Github_Release_Manger
                 Console.WriteLine(latest.Prerelease);
                 foreach (ReleaseAsset asset in latest.Assets)
                 {
-                    DownloadFile(asset.BrowserDownloadUrl, path + "/", asset.Name.Replace("-", " ")).Wait();
                     FileInfo fi = new FileInfo(asset.Name.Replace("-", " "));
+                    if (fi.Name != "Prepared-Executeable.zip") continue;
+                    DownloadFile(asset.BrowserDownloadUrl, path + "/", asset.Name.Replace("-", " ")).Wait();
+
                     if (fi.Extension == ".zip")
                     {
                         string folder = path + "/" + Path.GetFileNameWithoutExtension(fi.Name);
